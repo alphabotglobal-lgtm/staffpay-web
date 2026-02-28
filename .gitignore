@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.env*.local
+*.log
+build_*.txt
+error_log.txt

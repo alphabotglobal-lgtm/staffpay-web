@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Shadow -->
+  <ellipse cx="60" cy="112" rx="36" ry="6" fill="#000" opacity="0.15"/>
+
+  <!-- Cube body — front face -->
+  <path d="M20 38 L20 92 Q20 96 24 96 L82 96 Q86 96 86 92 L86 38 Z" fill="#FACC15"/>
+
+  <!-- Cube body — top face (lighter) -->
+  <path d="M20 38 L50 22 Q53 20 56 20 L106 20 Q110 20 108 24 L86 38 Z" fill="#FDE047"/>
+
+  <!-- Cube body — right face (darker) -->
+  <path d="M86 38 L108 24 Q110 20 110 24 L110 78 Q110 82 108 84 L86 96 L86 38 Z" fill="#D4A90A"/>
+
+  <!-- Text on front face -->
+  <text x="53" y="62" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="9" fill="#0A0A0A" letter-spacing="0.5">STAFFPAY</text>
+  <text x="53" y="74" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="9" fill="#0A0A0A" letter-spacing="1.5">AI</text>
+
+  <!-- Subtle shine on top -->
+  <path d="M28 36 L52 23 L76 23 L56 36 Z" fill="#fff" opacity="0.2"/>
+
+  <!-- LED indicator dots on front -->
+  <circle cx="30" cy="86" r="2.5" fill="#EF4444" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="38" cy="86" r="2.5" fill="#4ADE80" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3.1s" repeatCount="indefinite"/>
+  </circle>
+</svg>
