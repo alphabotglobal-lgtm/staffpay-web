@@ -195,7 +195,7 @@ const SwipeReveal = ({ onComplete, onStart }: { onComplete: () => void; onStart?
   );
 };
 
-const Hero = ({ isRevealed }: { isRevealed: boolean }) => {
+const Hero = ({ isRevealed, onAnimationComplete }: { isRevealed: boolean; onAnimationComplete?: () => void }) => {
   const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -220,7 +220,7 @@ const Hero = ({ isRevealed }: { isRevealed: boolean }) => {
         gsap.set('.bug-target-1', { x: target1X, y: target1Y, scale: 0.65 * s, rotationZ: -10, opacity: 1 });
         gsap.set('.butterfly-realistic-wing-left, .butterfly-realistic-wing-right', { animationPlayState: 'paused' });
 
-        const tl = gsap.timeline({ repeat: 0 });
+        const tl = gsap.timeline({ repeat: 0, onComplete: () => onAnimationComplete?.() });
         tl.to('.hero-payroll-intel-text', { opacity: 1, duration: 2, ease: 'power2.inOut' });
         tl.to({}, { duration: 1 });
         tl.set('.butterfly-realistic-wing-left, .butterfly-realistic-wing-right', { animationPlayState: 'running' });
@@ -248,7 +248,7 @@ const Hero = ({ isRevealed }: { isRevealed: boolean }) => {
           .to('.hero-payroll-intel-text', { opacity: 0, duration: 1, ease: 'power1.inOut' }, 5.5);
 
         tl.to('.hero-tech-text', { opacity: 1, duration: 1, ease: 'power1.inOut' }, 6.2)
-          .to('.hero-tech-text', { opacity: 0, duration: 2, ease: 'power1.inOut' }, 8.0);
+          .to('.hero-tech-text', { opacity: 0, duration: 2, ease: 'power1.inOut' }, 10.0);
 
         tl.fromTo('.hero-punct-excl', { opacity: 1, scale: 1, transformOrigin: 'bottom center' }, { opacity: 0, scale: 0, duration: 2, ease: 'power1.inOut' }, 3.5);
         tl.fromTo('.hero-punct-dot', { opacity: 0, scale: 0, transformOrigin: 'bottom center' }, { opacity: 1, scale: 1, duration: 2, ease: 'power1.inOut' }, 3.5);
@@ -307,7 +307,7 @@ const Hero = ({ isRevealed }: { isRevealed: boolean }) => {
             </span>
             <span className="hero-tech-text col-start-1 row-start-1 text-[#050505] text-[1.575rem] md:text-[2.8125rem] tracking-widest leading-none pointer-events-auto opacity-0 flex flex-row items-center justify-center md:justify-start">
               <span className="font-drama italic lowercase">
-                Let technology do the work for you.
+                Let <span className="text-[#FDC00F]">technology</span> do the work for you.
               </span>
             </span>
           </h1>
@@ -331,7 +331,7 @@ const Philosophy = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="fade-group md:sticky md:top-0 z-[2] relative py-40 px-6 md:px-12 lg:px-24 bg-silver text-slate-900 overflow-hidden flex items-center justify-center min-h-[100dvh]">
+    <section id="automation" ref={sectionRef} className="fade-group md:sticky md:top-0 z-[2] relative py-40 px-6 md:px-12 lg:px-24 bg-silver text-slate-900 overflow-hidden flex items-center justify-center min-h-[100dvh]">
       <div className="absolute inset-0 z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&q=80&w=2600" alt="Abstract Lines" className="w-full h-full object-cover opacity-[0.2] mix-blend-screen" />
@@ -616,6 +616,8 @@ export default function LandingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [signupPlan, setSignupPlan] = useState<string | null>(null);
+  const autoScrollCancelled = useRef(false);
+  const autoScrollTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -643,6 +645,48 @@ export default function LandingPage() {
     return () => ctx.revert();
   }, []);
 
+  const startMobileAutoScroll = () => {
+    if (window.innerWidth >= 768) return; // desktop has sticky scroll, skip
+
+    autoScrollCancelled.current = false;
+
+    // Cancel on any user touch or manual scroll
+    const cancelAutoScroll = () => {
+      autoScrollCancelled.current = true;
+      autoScrollTimeouts.current.forEach(clearTimeout);
+      autoScrollTimeouts.current = [];
+      window.removeEventListener('touchstart', cancelAutoScroll);
+      window.removeEventListener('wheel', cancelAutoScroll);
+    };
+    window.addEventListener('touchstart', cancelAutoScroll, { once: true });
+    window.addEventListener('wheel', cancelAutoScroll, { once: true });
+
+    // Sections to scroll through with pause durations (ms)
+    const targets = [
+      { selector: '#automation', pause: 3000 },
+      { selector: '#features', pause: 3000 },
+      { selector: '#philosophy', pause: 3000 },
+      { selector: '#pricing', pause: 0 }, // stop here
+    ];
+
+    let cumulativeDelay = 1500; // initial pause after hero animation
+
+    targets.forEach((target) => {
+      const t = setTimeout(() => {
+        if (autoScrollCancelled.current) return;
+        const el = document.querySelector(target.selector);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, cumulativeDelay);
+      autoScrollTimeouts.current.push(t);
+      cumulativeDelay += 2000 + target.pause; // 2s scroll time + pause
+    });
+
+    // Cleanup listeners on unmount handled by React
+    return cancelAutoScroll;
+  };
+
   return (
     <main ref={mainRef} className="relative selection:bg-gold selection:text-obsidian bg-silver ">
       {!isRevealed && (
@@ -652,7 +696,7 @@ export default function LandingPage() {
         />
       )}
       <Navbar />
-      <Hero isRevealed={isStarted} />
+      <Hero isRevealed={isStarted} onAnimationComplete={startMobileAutoScroll} />
       <Philosophy />
       <Features />
       <Protocol />
